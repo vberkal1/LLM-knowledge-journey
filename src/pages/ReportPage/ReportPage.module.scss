@@ -1,0 +1,14 @@
+.page {
+  display: grid;
+  place-items: center;
+  min-height: calc(100vh - 112px);
+}
+
+.card {
+  width: min(100%, 720px);
+  padding: 2rem;
+  border: 1px solid var(--color-border);
+  border-radius: 28px;
+  background: var(--color-secondary);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+}

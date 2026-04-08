@@ -1,0 +1,6 @@
+node_modules
+dist
+docs
+AGENTS.md
+vite.config.js
+vite.config.d.ts

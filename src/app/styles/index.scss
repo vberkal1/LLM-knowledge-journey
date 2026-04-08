@@ -1,0 +1,25 @@
+@use './reset';
+@use './variables';
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(61, 111, 255, 0.14), transparent 28%),
+    radial-gradient(circle at bottom right, rgba(24, 164, 140, 0.12), transparent 22%),
+    var(--color-primary);
+  color: var(--color-text-primary);
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
