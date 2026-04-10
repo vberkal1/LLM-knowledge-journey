@@ -1,3 +1,4 @@
+import { useI18n } from 'shared/lib/i18n';
 import styles from './TimerDisplay.module.scss';
 
 interface TimerDisplayProps {
@@ -20,6 +21,7 @@ export function TimerDisplay({
   totalSec,
   tone = 'default',
 }: TimerDisplayProps): JSX.Element {
+  const { t } = useI18n();
   const safeTotal = Math.max(totalSec, 1);
   const safeRemaining = Math.max(remainingSec, 0);
   const progress = (safeRemaining / safeTotal) * 100;
@@ -35,7 +37,9 @@ export function TimerDisplay({
       >
         <div className={styles.ringInner}>{formatTime(safeRemaining)}</div>
       </div>
-      <span className={styles.caption}>{safeRemaining === 0 ? 'Time is up' : `${safeRemaining}s remaining`}</span>
+      <span className={styles.caption}>
+        {safeRemaining === 0 ? t('timer.timeUp') : t('timer.remaining', { seconds: safeRemaining })}
+      </span>
     </article>
   );
 }

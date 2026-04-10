@@ -1,14 +1,16 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { readStorage, removeStorage, STORAGE_KEYS, writeStorage } from 'shared/lib/storage';
 
+export type AchievementId = 'first_steps' | 'streak_5' | 'sprinter';
+
 interface GameState {
   totalXP: number;
   currentStreak: number;
   maxStreak: number;
   totalAnswered: number;
   correctAnswers: number;
-  achievements: string[];
-  latestUnlockedAchievement: string | null;
+  achievements: AchievementId[];
+  latestUnlockedAchievement: AchievementId | null;
 }
 
 interface ApplyAnswerOutcomeInput {
@@ -57,30 +59,46 @@ function isValidGameState(value: unknown): value is GameState {
   );
 }
 
+function normalizeAchievementId(value: string): AchievementId | null {
+  switch (value) {
+    case 'first_steps':
+    case 'First Steps':
+      return 'first_steps';
+    case 'streak_5':
+    case 'Streak 5':
+      return 'streak_5';
+    case 'sprinter':
+    case 'Sprinter':
+      return 'sprinter';
+    default:
+      return null;
+  }
+}
+
 function collectUnlockedAchievements(input: {
   previousState: GameState;
   isCorrect: boolean;
   nextStreak: number;
   timeRemainingSec: number;
   activityTimeLimitSec: number;
-}): string[] {
-  const unlocked: string[] = [];
+}): AchievementId[] {
+  const unlocked: AchievementId[] = [];
 
   if (input.previousState.totalAnswered === 0) {
-    unlocked.push('First Steps');
+    unlocked.push('first_steps');
   }
 
-  if (input.nextStreak >= 5 && !input.previousState.achievements.includes('Streak 5')) {
-    unlocked.push('Streak 5');
+  if (input.nextStreak >= 5 && !input.previousState.achievements.includes('streak_5')) {
+    unlocked.push('streak_5');
   }
 
   if (
     input.isCorrect &&
     input.activityTimeLimitSec > 0 &&
     input.timeRemainingSec >= Math.ceil(input.activityTimeLimitSec / 2) &&
-    !input.previousState.achievements.includes('Sprinter')
+    !input.previousState.achievements.includes('sprinter')
   ) {
-    unlocked.push('Sprinter');
+    unlocked.push('sprinter');
   }
 
   return unlocked;
@@ -89,7 +107,21 @@ function collectUnlockedAchievements(input: {
 function getInitialState(): GameState {
   const storedState = readStorage<GameState>(STORAGE_KEYS.game);
 
-  return storedState && isValidGameState(storedState) ? storedState : initialState;
+  if (!storedState || !isValidGameState(storedState)) {
+    return initialState;
+  }
+
+  const normalizedAchievements = storedState.achievements
+    .map(normalizeAchievementId)
+    .filter((achievement): achievement is AchievementId => achievement !== null);
+  const normalizedLatestAchievement =
+    storedState.latestUnlockedAchievement ? normalizeAchievementId(storedState.latestUnlockedAchievement) : null;
+
+  return {
+    ...storedState,
+    achievements: normalizedAchievements,
+    latestUnlockedAchievement: normalizedLatestAchievement,
+  };
 }
 
 interface GameStateProviderProps {

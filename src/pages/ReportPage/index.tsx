@@ -1,10 +1,12 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useGame } from 'entities/user-progress/model/gameContext';
 import { useJourney } from 'entities/user-progress/model/journeyContext';
+import { useI18n } from 'shared/lib/i18n';
 import styles from './ReportPage.module.scss';
 
 export function ReportPage(): JSX.Element {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const { journey, status, answers, totalActivities, resetJourney } = useJourney();
   const { totalXP, currentStreak, maxStreak, achievements, correctAnswers, totalAnswered, nextXpMultiplier } = useGame();
 
@@ -32,62 +34,71 @@ export function ReportPage(): JSX.Element {
       <div className={styles.layout}>
         {!journey ? (
           <div className={styles.card}>
-            <h1>Report</h1>
-            <p>No journey state is available yet.</p>
+            <h1>{t('report.title')}</h1>
+            <p>{t('report.empty')}</p>
             <Link className={styles.link} to="/">
-              Go to Landing
+              {t('journey.goLanding')}
             </Link>
           </div>
         ) : (
           <>
             <article className={styles.heroCard}>
-              <span className={styles.eyebrow}>Final Report</span>
+              <span className={styles.eyebrow}>{t('report.title')}</span>
               <h1>{journey.title}</h1>
               <p className={styles.description}>
-                Topic: {journey.topic}. Status: {status}. Completion: {completionRate}%.
+                {t('report.topicStatus', {
+                  topic: journey.topic,
+                  status: t(`status.${status}`),
+                  completion: completionRate,
+                })}
               </p>
               <div className={styles.summaryGrid}>
                 <div className={styles.metricCard}>
                   <strong>
                     {totalXP}/{maxXP}
                   </strong>
-                  <span>Total XP</span>
+                  <span>{t('report.totalXp')}</span>
                 </div>
                 <div className={styles.metricCard}>
                   <strong>
                     {correctAnswers}/{Math.max(totalAnswered, answers.length)}
                   </strong>
-                  <span>Correct Answers</span>
+                  <span>{t('report.correctAnswers')}</span>
                 </div>
                 <div className={styles.metricCard}>
                   <strong>{maxStreak}</strong>
-                  <span>Max Streak</span>
+                  <span>{t('report.maxStreak')}</span>
                 </div>
                 <div className={styles.metricCard}>
                   <strong>{achievements.length}</strong>
-                  <span>Achievements</span>
+                  <span>{t('report.achievements')}</span>
                 </div>
               </div>
               <div className={styles.actions}>
                 <button className={styles.primaryAction} onClick={handlePrint} type="button">
-                  Download Report
+                  {t('report.download')}
                 </button>
                 <button className={styles.secondaryAction} onClick={handleRestart} type="button">
-                  Start Again
+                  {t('report.startAgain')}
                 </button>
               </div>
             </article>
 
             <article className={styles.card}>
-              <h2>Performance Snapshot</h2>
+              <h2>{t('report.snapshot')}</h2>
               <ul className={styles.metrics}>
-                <li>Journey: {journey.title}</li>
+                <li>{t('report.journey', { title: journey.title })}</li>
+                <li>{t('report.answeredActivities', { answered: answers.length, total: totalActivities })}</li>
+                <li>{t('report.currentStreak', { count: currentStreak })}</li>
+                <li>{t('report.nextMultiplier', { value: nextXpMultiplier })}</li>
                 <li>
-                  Answered activities: {answers.length}/{totalActivities}
+                  {t('report.achievementsEarned', {
+                    value:
+                      achievements.length > 0
+                        ? achievements.map((achievement) => t(`achievement.${achievement}`)).join(', ')
+                        : t('journey.noneYet'),
+                  })}
                 </li>
-                <li>Current streak at finish: {currentStreak}</li>
-                <li>Next multiplier state: x{nextXpMultiplier}</li>
-                <li>Achievements earned: {achievements.length > 0 ? achievements.join(', ') : 'none yet'}</li>
               </ul>
             </article>
 
@@ -95,7 +106,7 @@ export function ReportPage(): JSX.Element {
               {journey.checkpoints.map((checkpoint) => (
                 <article className={styles.card} key={checkpoint.id}>
                   <header className={styles.sectionHeader}>
-                    <span className={styles.order}>Checkpoint {checkpoint.order}</span>
+                    <span className={styles.order}>{t('journey.checkpoint', { order: checkpoint.order })}</span>
                     <h2>{checkpoint.title}</h2>
                   </header>
                   <p className={styles.description}>{checkpoint.description}</p>
@@ -108,22 +119,27 @@ export function ReportPage(): JSX.Element {
                           <div className={styles.answerHeader}>
                             <strong>{activity.question}</strong>
                             <span className={answer?.isCorrect ? styles.resultSuccess : styles.resultError}>
-                              {answer ? (answer.isCorrect ? 'Correct' : 'Incorrect') : 'Not answered'}
+                              {answer ? (answer.isCorrect ? t('activity.correct') : t('report.incorrect')) : t('report.notAnswered')}
                             </span>
                           </div>
                           <span className={styles.meta}>
-                            Type: {activity.type} | Reward: {activity.xpReward} XP | Time limit: {activity.timeLimitSec}s
+                            {t('report.typeMeta', {
+                              type: activity.type,
+                              xp: activity.xpReward,
+                              time: activity.timeLimitSec,
+                            })}
                           </span>
                           <span>
-                            Your answer:{' '}
-                            {answer
-                              ? Array.isArray(answer.answer)
-                                ? answer.answer.join(' -> ')
-                                : answer.answer || 'No answer submitted'
-                              : 'No answer submitted'}
+                            {t('report.yourAnswer', {
+                              value: answer
+                                ? Array.isArray(answer.answer)
+                                  ? answer.answer.join(' -> ')
+                                  : answer.answer || t('report.noAnswerSubmitted')
+                                : t('report.noAnswerSubmitted'),
+                            })}
                           </span>
-                          <span>Feedback: {answer?.feedback ?? 'No feedback available'}</span>
-                          <span>XP earned: {answer?.earnedXP ?? 0}</span>
+                          <span>{t('report.feedback', { value: answer?.feedback ?? t('report.noFeedback') })}</span>
+                          <span>{t('report.xpEarned', { value: answer?.earnedXP ?? 0 })}</span>
                         </article>
                       );
                     })}
@@ -134,10 +150,10 @@ export function ReportPage(): JSX.Element {
 
             <div className={styles.footerActions}>
               <Link className={styles.link} to="/journey">
-                Back to Journey
+                {t('report.backToJourney')}
               </Link>
               <Link className={styles.link} to="/">
-                Go to Home
+                {t('report.goHome')}
               </Link>
             </div>
           </>

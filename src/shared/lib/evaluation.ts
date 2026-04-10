@@ -1,4 +1,5 @@
 import type { Activity, Journey } from 'shared/lib/types';
+import { getStoredLanguage, translate } from 'shared/lib/i18n';
 
 export interface EvaluationResult {
   isCorrect: boolean;
@@ -40,6 +41,8 @@ function toKeywordList(correctAnswer: Activity['correctAnswer']): string[] {
 }
 
 export function evaluateActivityAnswer(activity: Activity, answer: string | string[]): EvaluationResult {
+  const language = getStoredLanguage();
+
   if (activity.type === 'rank-the-concepts') {
     const expectedOrder = Array.isArray(activity.correctAnswer) ? activity.correctAnswer : [];
     const providedOrder = Array.isArray(answer) ? answer : [];
@@ -51,8 +54,8 @@ export function evaluateActivityAnswer(activity: Activity, answer: string | stri
     return {
       isCorrect,
       feedback: isCorrect
-        ? 'Correct order. You understand the sequence of the forward pass.'
-        : 'The order is off. Revisit how inputs become activations and then predictions.',
+        ? translate(language, 'feedback.rank.correct')
+        : translate(language, 'feedback.rank.incorrect'),
       matchedKeywords: isCorrect ? expectedOrder.map(normalizeText) : [],
     };
   }
@@ -65,8 +68,8 @@ export function evaluateActivityAnswer(activity: Activity, answer: string | stri
     return {
       isCorrect,
       feedback: isCorrect
-        ? 'Correct. The answer matches the expected result.'
-        : `Not quite. Hint: ${activity.hint}`,
+        ? translate(language, 'feedback.exact.correct')
+        : translate(language, 'feedback.exact.incorrect', { hint: activity.hint }),
       matchedKeywords: isCorrect ? [expected] : [],
     };
   }
@@ -81,15 +84,15 @@ export function evaluateActivityAnswer(activity: Activity, answer: string | stri
     return {
       isCorrect,
       feedback: isCorrect
-        ? 'Good explanation. The key ideas are present.'
-        : `Needs more detail. Try covering these ideas: ${expectedKeywords.join(', ')}.`,
+        ? translate(language, 'feedback.freeform.correct')
+        : translate(language, 'feedback.freeform.incorrect', { keywords: expectedKeywords.join(', ') }),
       matchedKeywords,
     };
   }
 
   return {
     isCorrect: false,
-    feedback: `No evaluator configured for activity type "${activity.type}".`,
+    feedback: translate(language, 'feedback.missingEvaluator', { type: activity.type }),
     matchedKeywords: [],
   };
 }

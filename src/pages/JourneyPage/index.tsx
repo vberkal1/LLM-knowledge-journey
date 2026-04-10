@@ -4,10 +4,12 @@ import { useGame } from 'entities/user-progress/model/gameContext';
 import { useJourney } from 'entities/user-progress/model/journeyContext';
 import { ActivitySession } from 'features/checkpoint/ui/ActivitySession';
 import { TimerDisplay } from 'features/timer/ui/TimerDisplay';
+import { useI18n } from 'shared/lib/i18n';
 import styles from './JourneyPage.module.scss';
 
 export function JourneyPage(): JSX.Element {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const {
     journey,
     status,
@@ -117,7 +119,7 @@ export function JourneyPage(): JSX.Element {
       answer: '',
       isCorrect: false,
       earnedXP: 0,
-      feedback: `Time is up. Hint: ${activeActivity.hint}`,
+      feedback: t('journey.timeoutFeedback', { hint: activeActivity.hint }),
       timeRemainingSec: 0,
       activityTimeLimitSec: activeActivity.timeLimitSec,
     });
@@ -152,49 +154,51 @@ export function JourneyPage(): JSX.Element {
   return (
     <section className={styles.page}>
       {latestUnlockedAchievement ? (
-        <div className={styles.toast}>Achievement unlocked: {latestUnlockedAchievement}</div>
+        <div className={styles.toast}>
+          {t('journey.toastAchievement', { name: t(`achievement.${latestUnlockedAchievement}`) })}
+        </div>
       ) : null}
-      {status === 'loading' ? <div className={styles.card}>Generating journey...</div> : null}
+      {status === 'loading' ? <div className={styles.card}>{t('journey.generating')}</div> : null}
       {status !== 'loading' && !journey ? (
         <div className={styles.card}>
-          <h1>No active journey</h1>
-          <p className={styles.description}>Start a journey from the landing page or restore one from storage.</p>
+          <h1>{t('journey.noActiveTitle')}</h1>
+          <p className={styles.description}>{t('journey.noActiveText')}</p>
           <Link className={styles.inlineLink} to="/">
-            Go to Landing
+            {t('journey.goLanding')}
           </Link>
         </div>
       ) : null}
       {activeJourney && activeCheckpoint && activeActivity ? (
         <div className={styles.layout}>
           <article className={styles.heroCard}>
-            <span className={styles.eyebrow}>Active Journey</span>
+            <span className={styles.eyebrow}>{t('journey.active')}</span>
             <h1>{activeJourney.title}</h1>
             <p className={styles.description}>{activeJourney.topic}</p>
             <div className={styles.metrics}>
               <div className={styles.metric}>
                 <strong>{activeJourney.checkpoints.length}</strong>
-                <span>Checkpoints</span>
+                <span>{t('journey.checkpoints')}</span>
               </div>
               <div className={styles.metric}>
                 <strong>
                   {completedActivities}/{totalActivities}
                 </strong>
-                <span>Completed</span>
+                <span>{t('journey.completed')}</span>
               </div>
               <div className={styles.metric}>
                 <strong>{totalXP}</strong>
-                <span>Total XP</span>
+                <span>{t('journey.totalXp')}</span>
               </div>
             </div>
             <div className={styles.timerGrid}>
               <TimerDisplay
-                label="Journey Timer"
+                label={t('journey.timerJourney')}
                 remainingSec={journeyRemainingSec}
                 tone={journeyRemainingSec <= 10 ? 'critical' : 'default'}
                 totalSec={journeyTimeLimitSec}
               />
               <TimerDisplay
-                label="Activity Timer"
+                label={t('journey.timerActivity')}
                 remainingSec={activityRemainingSec}
                 tone={activityRemainingSec <= 10 && !savedAnswer ? 'critical' : 'default'}
                 totalSec={currentActivityTimeLimitSec}
@@ -205,7 +209,7 @@ export function JourneyPage(): JSX.Element {
           <div className={styles.contentGrid}>
             <article className={styles.card}>
               <header className={styles.cardHeader}>
-                <span className={styles.order}>Checkpoint {activeCheckpoint.order}</span>
+                <span className={styles.order}>{t('journey.checkpoint', { order: activeCheckpoint.order })}</span>
                 <h2>{activeCheckpoint.title}</h2>
               </header>
               <p className={styles.description}>{activeCheckpoint.description}</p>
@@ -213,7 +217,10 @@ export function JourneyPage(): JSX.Element {
                 <div className={styles.activityMeta}>
                   <span className={styles.badge}>{activeActivity.type}</span>
                   <span>
-                    Activity {currentActivityIndex + 1}/{activeCheckpoint.activities.length}
+                    {t('journey.activity', {
+                      current: currentActivityIndex + 1,
+                      total: activeCheckpoint.activities.length,
+                    })}
                   </span>
                   <span>{activeActivity.timeLimitSec}s</span>
                   <span>{activeActivity.xpReward} XP</span>
@@ -242,24 +249,33 @@ export function JourneyPage(): JSX.Element {
 
             <aside className={styles.card}>
               <header className={styles.cardHeader}>
-                <span className={styles.order}>Progress State</span>
-                <h2>Session Snapshot</h2>
+                <span className={styles.order}>{t('journey.progressState')}</span>
+                <h2>{t('journey.sessionSnapshot')}</h2>
               </header>
               <ul className={styles.snapshotList}>
-                <li>Checkpoint index: {currentCheckpointIndex}</li>
-                <li>Activity index: {currentActivityIndex}</li>
-                <li>Saved answers: {answers.length}</li>
-                <li>Current streak: {currentStreak}</li>
-                <li>Max streak: {maxStreak}</li>
-                <li>Next XP multiplier: x{nextXpMultiplier}</li>
-                <li>Status: {status}</li>
-                <li>Current answer saved: {savedAnswer ? 'yes' : 'no'}</li>
+                <li>{t('journey.checkpointIndex', { count: currentCheckpointIndex })}</li>
+                <li>{t('journey.activityIndex', { count: currentActivityIndex })}</li>
+                <li>{t('journey.savedAnswers', { count: answers.length })}</li>
+                <li>{t('journey.currentStreak', { count: currentStreak })}</li>
+                <li>{t('journey.maxStreak', { count: maxStreak })}</li>
+                <li>{t('journey.nextMultiplier', { value: nextXpMultiplier })}</li>
+                <li>{t('journey.status', { value: t(`status.${status}`) })}</li>
+                <li>
+                  {t('journey.currentAnswerSaved', {
+                    value: savedAnswer ? t('journey.currentAnswerSavedYes') : t('journey.currentAnswerSavedNo'),
+                  })}
+                </li>
               </ul>
               <p className={styles.hint}>
-                Achievements stored: {achievements.length > 0 ? achievements.join(', ') : 'none yet'}
+                {t('journey.achievements', {
+                  value:
+                    achievements.length > 0
+                      ? achievements.map((achievement) => t(`achievement.${achievement}`)).join(', ')
+                      : t('journey.noneYet'),
+                })}
               </p>
               <Link className={styles.inlineLink} to="/report">
-                Open Report State
+                {t('journey.openReport')}
               </Link>
             </aside>
           </div>

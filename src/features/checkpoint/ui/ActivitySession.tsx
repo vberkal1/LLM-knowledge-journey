@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { evaluateAnswer } from 'shared/api/aiService';
+import { useI18n } from 'shared/lib/i18n';
 import type { Activity, UserAnswer } from 'shared/lib/types';
 import styles from './ActivitySession.module.scss';
 
@@ -36,6 +37,7 @@ export function ActivitySession({
   onNext,
   isFinalActivity,
 }: ActivitySessionProps): JSX.Element {
+  const { t } = useI18n();
   const [answer, setAnswer] = useState<string | string[]>(() => savedAnswer?.answer ?? buildInitialAnswer(activity));
   const [feedback, setFeedback] = useState<string>(savedAnswer?.feedback ?? '');
   const [isCorrect, setIsCorrect] = useState<boolean>(savedAnswer?.isCorrect ?? false);
@@ -160,7 +162,7 @@ export function ActivitySession({
 
   return (
     <div className={styles.session}>
-      <p className={styles.debugHint}>Dev shortcut: press Ctrl+Z to reveal the expected answer marker.</p>
+      <p className={styles.debugHint}>{t('activity.debugHint')}</p>
       {activity.options && activity.type !== 'rank-the-concepts' ? (
         <div className={styles.optionGroup}>
           {activity.options.map((option) => {
@@ -195,14 +197,14 @@ export function ActivitySession({
               </div>
               <div className={styles.rankActions}>
                 <button disabled={isAnswered || index === 0} onClick={() => moveRankItem(index, -1)} type="button">
-                  Up
+                  {t('activity.up')}
                 </button>
                 <button
                   disabled={isAnswered || index === rankAnswer.length - 1}
                   onClick={() => moveRankItem(index, 1)}
                   type="button"
                 >
-                  Down
+                  {t('activity.down')}
                 </button>
               </div>
             </div>
@@ -213,7 +215,7 @@ export function ActivitySession({
       {!activity.options || isTextActivity(activity) || activity.type === 'fill-blank' ? (
         <label className={styles.field}>
           <span className={styles.fieldLabel}>
-            {isTextActivity(activity) ? 'Your response' : 'Your answer'}
+            {isTextActivity(activity) ? t('activity.response') : t('activity.answer')}
           </span>
           {isTextActivity(activity) ? (
             <textarea
@@ -237,7 +239,7 @@ export function ActivitySession({
 
       {isAnswered ? (
         <div className={isCorrect ? styles.feedbackSuccess : styles.feedbackError}>
-          <strong>{isCorrect ? 'Correct' : 'Needs work'}</strong>
+          <strong>{isCorrect ? t('activity.correct') : t('activity.needsWork')}</strong>
           <p>{feedback}</p>
         </div>
       ) : null}
@@ -249,10 +251,10 @@ export function ActivitySession({
           onClick={() => void handleSubmit()}
           type="button"
         >
-          {isSubmitting ? 'Checking...' : 'Submit Answer'}
+          {isSubmitting ? t('activity.checking') : t('activity.submit')}
         </button>
         <button className={styles.nextButton} disabled={!isAnswered} onClick={onNext} type="button">
-          {isFinalActivity ? 'Finish Journey' : 'Next'}
+          {isFinalActivity ? t('activity.finish') : t('activity.next')}
         </button>
       </div>
     </div>
