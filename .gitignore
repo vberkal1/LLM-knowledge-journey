@@ -6,3 +6,4 @@ docs
 AGENTS.md
 vite.config.js
 vite.config.d.ts
+*.tsbuildinfo
