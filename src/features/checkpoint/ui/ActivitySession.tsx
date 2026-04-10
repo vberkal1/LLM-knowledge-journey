@@ -1,13 +1,20 @@
 import { useEffect, useMemo, useState } from 'react';
 import { evaluateAnswer } from 'shared/api/aiService';
-import { useI18n } from 'shared/lib/i18n';
+import { resolveFeedbackMessage, useI18n } from 'shared/lib/i18n';
 import type { Activity, UserAnswer } from 'shared/lib/types';
 import styles from './ActivitySession.module.scss';
 
 interface ActivitySessionProps {
   activity: Activity;
   savedAnswer?: UserAnswer;
-  onSubmit: (payload: { answer: string | string[]; isCorrect: boolean; earnedXP: number; feedback: string }) => void;
+  onSubmit: (payload: {
+    answer: string | string[];
+    isCorrect: boolean;
+    earnedXP: number;
+    feedback: string;
+    feedbackKey?: string;
+    feedbackParams?: Record<string, string | number>;
+  }) => void;
   onNext: () => void;
   isFinalActivity: boolean;
 }
@@ -37,20 +44,34 @@ export function ActivitySession({
   onNext,
   isFinalActivity,
 }: ActivitySessionProps): JSX.Element {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const [answer, setAnswer] = useState<string | string[]>(() => savedAnswer?.answer ?? buildInitialAnswer(activity));
-  const [feedback, setFeedback] = useState<string>(savedAnswer?.feedback ?? '');
+  const [feedback, setFeedback] = useState<string>(
+    resolveFeedbackMessage({
+      language,
+      feedback: savedAnswer?.feedback,
+      feedbackKey: savedAnswer?.feedbackKey,
+      feedbackParams: savedAnswer?.feedbackParams,
+    }),
+  );
   const [isCorrect, setIsCorrect] = useState<boolean>(savedAnswer?.isCorrect ?? false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [debugRevealEnabled, setDebugRevealEnabled] = useState<boolean>(false);
 
   useEffect(() => {
     setAnswer(savedAnswer?.answer ?? buildInitialAnswer(activity));
-    setFeedback(savedAnswer?.feedback ?? '');
+    setFeedback(
+      resolveFeedbackMessage({
+        language,
+        feedback: savedAnswer?.feedback,
+        feedbackKey: savedAnswer?.feedbackKey,
+        feedbackParams: savedAnswer?.feedbackParams,
+      }),
+    );
     setIsCorrect(savedAnswer?.isCorrect ?? false);
     setIsSubmitting(false);
     setDebugRevealEnabled(false);
-  }, [activity, savedAnswer]);
+  }, [activity, language, savedAnswer]);
 
   const isAnswered = Boolean(savedAnswer);
   useEffect(() => {
@@ -146,14 +167,21 @@ export function ActivitySession({
     try {
       const result = await evaluateAnswer(activity, answer);
       const earnedXP = result.isCorrect ? activity.xpReward : 0;
+      const resolvedFeedback = resolveFeedbackMessage({
+        language,
+        feedbackKey: result.feedbackKey,
+        feedbackParams: result.feedbackParams,
+      });
 
-      setFeedback(result.feedback);
+      setFeedback(resolvedFeedback);
       setIsCorrect(result.isCorrect);
       onSubmit({
         answer,
         isCorrect: result.isCorrect,
         earnedXP,
-        feedback: result.feedback,
+        feedback: resolvedFeedback,
+        feedbackKey: result.feedbackKey,
+        feedbackParams: result.feedbackParams,
       });
     } finally {
       setIsSubmitting(false);

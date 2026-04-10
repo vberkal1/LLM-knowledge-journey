@@ -120,6 +120,8 @@ export function JourneyPage(): JSX.Element {
       isCorrect: false,
       earnedXP: 0,
       feedback: t('journey.timeoutFeedback', { hint: activeActivity.hint }),
+      feedbackKey: 'journey.timeoutFeedback',
+      feedbackParams: { hint: activeActivity.hint },
       timeRemainingSec: 0,
       activityTimeLimitSec: activeActivity.timeLimitSec,
     });
@@ -231,13 +233,15 @@ export function JourneyPage(): JSX.Element {
                   activity={activeActivity}
                   isFinalActivity={isFinalActivity}
                   onNext={handleNext}
-                  onSubmit={({ answer, isCorrect, earnedXP, feedback }) =>
+                  onSubmit={({ answer, isCorrect, earnedXP, feedback, feedbackKey, feedbackParams }) =>
                     submitAnswer({
                       activityId: activeActivity.id,
                       answer,
                       isCorrect,
                       earnedXP,
                       feedback,
+                      feedbackKey,
+                      feedbackParams,
                       timeRemainingSec: activityRemainingSec,
                       activityTimeLimitSec: currentActivityTimeLimitSec,
                     })

@@ -1,12 +1,12 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useGame } from 'entities/user-progress/model/gameContext';
 import { useJourney } from 'entities/user-progress/model/journeyContext';
-import { useI18n } from 'shared/lib/i18n';
+import { resolveFeedbackMessage, useI18n } from 'shared/lib/i18n';
 import styles from './ReportPage.module.scss';
 
 export function ReportPage(): JSX.Element {
   const navigate = useNavigate();
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const { journey, status, answers, totalActivities, resetJourney } = useJourney();
   const { totalXP, currentStreak, maxStreak, achievements, correctAnswers, totalAnswered, nextXpMultiplier } = useGame();
 
@@ -138,7 +138,18 @@ export function ReportPage(): JSX.Element {
                                 : t('report.noAnswerSubmitted'),
                             })}
                           </span>
-                          <span>{t('report.feedback', { value: answer?.feedback ?? t('report.noFeedback') })}</span>
+                          <span>
+                            {t('report.feedback', {
+                              value: answer
+                                ? resolveFeedbackMessage({
+                                    language,
+                                    feedback: answer.feedback,
+                                    feedbackKey: answer.feedbackKey,
+                                    feedbackParams: answer.feedbackParams,
+                                  }) || t('report.noFeedback')
+                                : t('report.noFeedback'),
+                            })}
+                          </span>
                           <span>{t('report.xpEarned', { value: answer?.earnedXP ?? 0 })}</span>
                         </article>
                       );

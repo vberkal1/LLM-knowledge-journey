@@ -16,7 +16,7 @@ interface JourneyState {
   currentCheckpointIndex: number;
   currentActivityIndex: number;
   answers: UserAnswer[];
-  feedbackByActivity: Record<string, string>;
+  feedbackByActivity: Record<string, { key?: string; params?: Record<string, string | number>; text?: string }>;
   journeyDeadlineAt: string | null;
   activityDeadlineAt: string | null;
 }
@@ -27,6 +27,8 @@ interface SubmitAnswerInput {
   isCorrect: boolean;
   earnedXP: number;
   feedback: string;
+  feedbackKey?: string;
+  feedbackParams?: Record<string, string | number>;
   timeRemainingSec: number;
   activityTimeLimitSec: number;
 }
@@ -72,7 +74,11 @@ function isValidUserAnswer(value: unknown): value is UserAnswer {
       (Array.isArray(candidate.answer) && candidate.answer.every((item) => typeof item === 'string'))) &&
     typeof candidate.isCorrect === 'boolean' &&
     typeof candidate.earnedXP === 'number' &&
-    typeof candidate.timestamp === 'string'
+    typeof candidate.timestamp === 'string' &&
+    (candidate.feedback === undefined || typeof candidate.feedback === 'string') &&
+    (candidate.feedbackKey === undefined || typeof candidate.feedbackKey === 'string') &&
+    (candidate.feedbackParams === undefined ||
+      (candidate.feedbackParams !== null && typeof candidate.feedbackParams === 'object'))
   );
 }
 
@@ -273,7 +279,17 @@ export function JourneyStateProvider({ children }: JourneyStateProviderProps): J
           return false;
         }
       },
-      submitAnswer: ({ activityId, answer, isCorrect, earnedXP, feedback, timeRemainingSec, activityTimeLimitSec }) => {
+      submitAnswer: ({
+        activityId,
+        answer,
+        isCorrect,
+        earnedXP,
+        feedback,
+        feedbackKey,
+        feedbackParams,
+        timeRemainingSec,
+        activityTimeLimitSec,
+      }) => {
         let shouldApplyOutcome = false;
         const awardedXP = getXpAward({ isCorrect, baseXp: earnedXP });
 
@@ -295,11 +311,17 @@ export function JourneyStateProvider({ children }: JourneyStateProviderProps): J
                 earnedXP: awardedXP,
                 timestamp: new Date().toISOString(),
                 feedback,
+                feedbackKey,
+                feedbackParams,
               },
             ],
             feedbackByActivity: {
               ...currentState.feedbackByActivity,
-              [activityId]: feedback,
+              [activityId]: {
+                text: feedback,
+                key: feedbackKey,
+                params: feedbackParams,
+              },
             },
           };
         });

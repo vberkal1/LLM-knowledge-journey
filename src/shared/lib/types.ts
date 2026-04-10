@@ -46,6 +46,8 @@ export interface UserAnswer {
   earnedXP: number;
   timestamp: string;
   feedback?: string;
+  feedbackKey?: string;
+  feedbackParams?: Record<string, string | number>;
 }
 
 export interface JourneyResult {
@@ -56,5 +58,5 @@ export interface JourneyResult {
   streak: number;
   achievements: string[];
   detailedAnswers: UserAnswer[];
-  feedbackByActivity: Record<string, string>;
+  feedbackByActivity: Record<string, { key?: string; params?: Record<string, string | number>; text?: string }>;
 }

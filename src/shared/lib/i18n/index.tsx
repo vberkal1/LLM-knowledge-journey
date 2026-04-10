@@ -253,6 +253,19 @@ export function translate(language: Language, key: string, params?: Record<strin
   return formatMessage(template, params);
 }
 
+export function resolveFeedbackMessage(input: {
+  language: Language;
+  feedback?: string;
+  feedbackKey?: string;
+  feedbackParams?: Record<string, string | number>;
+}): string {
+  if (input.feedbackKey) {
+    return translate(input.language, input.feedbackKey, input.feedbackParams);
+  }
+
+  return input.feedback ?? '';
+}
+
 interface LanguageContextValue {
   language: Language;
   setLanguage: (language: Language) => void;

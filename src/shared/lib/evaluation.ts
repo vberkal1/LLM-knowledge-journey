@@ -1,9 +1,9 @@
 import type { Activity, Journey } from 'shared/lib/types';
-import { getStoredLanguage, translate } from 'shared/lib/i18n';
 
 export interface EvaluationResult {
   isCorrect: boolean;
-  feedback: string;
+  feedbackKey: string;
+  feedbackParams?: Record<string, string | number>;
   matchedKeywords: string[];
 }
 
@@ -41,8 +41,6 @@ function toKeywordList(correctAnswer: Activity['correctAnswer']): string[] {
 }
 
 export function evaluateActivityAnswer(activity: Activity, answer: string | string[]): EvaluationResult {
-  const language = getStoredLanguage();
-
   if (activity.type === 'rank-the-concepts') {
     const expectedOrder = Array.isArray(activity.correctAnswer) ? activity.correctAnswer : [];
     const providedOrder = Array.isArray(answer) ? answer : [];
@@ -53,9 +51,7 @@ export function evaluateActivityAnswer(activity: Activity, answer: string | stri
 
     return {
       isCorrect,
-      feedback: isCorrect
-        ? translate(language, 'feedback.rank.correct')
-        : translate(language, 'feedback.rank.incorrect'),
+      feedbackKey: isCorrect ? 'feedback.rank.correct' : 'feedback.rank.incorrect',
       matchedKeywords: isCorrect ? expectedOrder.map(normalizeText) : [],
     };
   }
@@ -67,9 +63,8 @@ export function evaluateActivityAnswer(activity: Activity, answer: string | stri
 
     return {
       isCorrect,
-      feedback: isCorrect
-        ? translate(language, 'feedback.exact.correct')
-        : translate(language, 'feedback.exact.incorrect', { hint: activity.hint }),
+      feedbackKey: isCorrect ? 'feedback.exact.correct' : 'feedback.exact.incorrect',
+      feedbackParams: isCorrect ? undefined : { hint: activity.hint },
       matchedKeywords: isCorrect ? [expected] : [],
     };
   }
@@ -83,16 +78,16 @@ export function evaluateActivityAnswer(activity: Activity, answer: string | stri
 
     return {
       isCorrect,
-      feedback: isCorrect
-        ? translate(language, 'feedback.freeform.correct')
-        : translate(language, 'feedback.freeform.incorrect', { keywords: expectedKeywords.join(', ') }),
+      feedbackKey: isCorrect ? 'feedback.freeform.correct' : 'feedback.freeform.incorrect',
+      feedbackParams: isCorrect ? undefined : { keywords: expectedKeywords.join(', ') },
       matchedKeywords,
     };
   }
 
   return {
     isCorrect: false,
-    feedback: translate(language, 'feedback.missingEvaluator', { type: activity.type }),
+    feedbackKey: 'feedback.missingEvaluator',
+    feedbackParams: { type: activity.type },
     matchedKeywords: [],
   };
 }
