@@ -7,6 +7,8 @@ import { useGame } from './gameContext';
 
 type JourneyStatus = 'idle' | 'loading' | 'active' | 'completed';
 
+const DEFAULT_JOURNEY_TIME_LIMIT_SEC = 60; // DEFAULT
+
 interface JourneyState {
   journey: Journey | null;
   topic: string;
@@ -14,6 +16,9 @@ interface JourneyState {
   currentCheckpointIndex: number;
   currentActivityIndex: number;
   answers: UserAnswer[];
+  feedbackByActivity: Record<string, string>;
+  journeyDeadlineAt: string | null;
+  activityDeadlineAt: string | null;
 }
 
 interface SubmitAnswerInput {
@@ -21,6 +26,9 @@ interface SubmitAnswerInput {
   answer: string | string[];
   isCorrect: boolean;
   earnedXP: number;
+  feedback: string;
+  timeRemainingSec: number;
+  activityTimeLimitSec: number;
 }
 
 interface JourneyContextValue extends JourneyState {
@@ -28,7 +36,9 @@ interface JourneyContextValue extends JourneyState {
   currentActivity: Activity | null;
   totalActivities: number;
   completedActivities: number;
-  startJourney: (topic: string) => Promise<void>;
+  journeyTimeLimitSec: number;
+  currentActivityTimeLimitSec: number;
+  startJourney: (topic: string) => Promise<boolean>;
   submitAnswer: (input: SubmitAnswerInput) => void;
   goToNextActivity: () => void;
   completeJourney: () => void;
@@ -42,6 +52,9 @@ const initialState: JourneyState = {
   currentCheckpointIndex: 0,
   currentActivityIndex: 0,
   answers: [],
+  feedbackByActivity: {},
+  journeyDeadlineAt: null,
+  activityDeadlineAt: null,
 };
 
 const JourneyContext = createContext<JourneyContextValue | null>(null);
@@ -130,8 +143,32 @@ function isValidJourneyState(value: unknown): value is JourneyState {
     typeof candidate.currentActivityIndex === 'number' &&
     Array.isArray(candidate.answers) &&
     candidate.answers.every(isValidUserAnswer) &&
+    (candidate.feedbackByActivity === undefined ||
+      (candidate.feedbackByActivity !== null && typeof candidate.feedbackByActivity === 'object')) &&
+    (candidate.journeyDeadlineAt === undefined ||
+      candidate.journeyDeadlineAt === null ||
+      typeof candidate.journeyDeadlineAt === 'string') &&
+    (candidate.activityDeadlineAt === undefined ||
+      candidate.activityDeadlineAt === null ||
+      typeof candidate.activityDeadlineAt === 'string') &&
     (candidate.journey === null || isValidJourney(candidate.journey))
   );
+}
+
+function getJourneyTimeLimitSec(journey: Journey): number {
+  return journey.totalTimeLimitSec ?? DEFAULT_JOURNEY_TIME_LIMIT_SEC;
+}
+
+function getCheckpointFromState(state: JourneyState): Checkpoint | null {
+  return state.journey?.checkpoints[state.currentCheckpointIndex] ?? null;
+}
+
+function getActivityFromState(state: JourneyState): Activity | null {
+  return getCheckpointFromState(state)?.activities[state.currentActivityIndex] ?? null;
+}
+
+function createDeadlineFromNow(durationSec: number): string {
+  return new Date(Date.now() + durationSec * 1000).toISOString();
 }
 
 function clampState(state: JourneyState): JourneyState {
@@ -150,6 +187,15 @@ function clampState(state: JourneyState): JourneyState {
 
   return {
     ...state,
+    feedbackByActivity: state.feedbackByActivity ?? {},
+    journeyDeadlineAt:
+      state.status === 'active'
+        ? state.journeyDeadlineAt ?? createDeadlineFromNow(getJourneyTimeLimitSec(state.journey))
+        : null,
+    activityDeadlineAt:
+      state.status === 'active'
+        ? state.activityDeadlineAt ?? createDeadlineFromNow(checkpoint.activities[currentActivityIndex].timeLimitSec)
+        : null,
     currentCheckpointIndex,
     currentActivityIndex,
   };
@@ -166,7 +212,7 @@ interface JourneyStateProviderProps {
 }
 
 export function JourneyStateProvider({ children }: JourneyStateProviderProps): JSX.Element {
-  const { applyAnswerOutcome, resetGame } = useGame();
+  const { applyAnswerOutcome, getXpAward, resetGame } = useGame();
   const [state, setState] = useState<JourneyState>(getInitialState);
 
   useEffect(() => {
@@ -179,6 +225,8 @@ export function JourneyStateProvider({ children }: JourneyStateProviderProps): J
     currentCheckpoint?.activities[state.currentActivityIndex] ?? null;
   const totalActivities = state.journey ? countJourneyActivities(state.journey) : 0;
   const completedActivities = state.answers.length;
+  const journeyTimeLimitSec = state.journey ? getJourneyTimeLimitSec(state.journey) : DEFAULT_JOURNEY_TIME_LIMIT_SEC;
+  const currentActivityTimeLimitSec = currentActivity?.timeLimitSec ?? 0;
 
   const value = useMemo<JourneyContextValue>(
     () => ({
@@ -187,6 +235,8 @@ export function JourneyStateProvider({ children }: JourneyStateProviderProps): J
       currentActivity,
       totalActivities,
       completedActivities,
+      journeyTimeLimitSec,
+      currentActivityTimeLimitSec,
       startJourney: async (topic: string) => {
         const sanitizedTopic = topic.trim();
 
@@ -208,19 +258,31 @@ export function JourneyStateProvider({ children }: JourneyStateProviderProps): J
             currentCheckpointIndex: 0,
             currentActivityIndex: 0,
             answers: [],
+            feedbackByActivity: {},
+            journeyDeadlineAt: createDeadlineFromNow(getJourneyTimeLimitSec(journey)),
+            activityDeadlineAt: createDeadlineFromNow(journey.checkpoints[0].activities[0].timeLimitSec),
           });
+
+          return true;
         } catch {
           setState({
             ...initialState,
             topic: sanitizedTopic,
           });
+
+          return false;
         }
       },
-      submitAnswer: ({ activityId, answer, isCorrect, earnedXP }) => {
+      submitAnswer: ({ activityId, answer, isCorrect, earnedXP, feedback, timeRemainingSec, activityTimeLimitSec }) => {
+        let shouldApplyOutcome = false;
+        const awardedXP = getXpAward({ isCorrect, baseXp: earnedXP });
+
         setState((currentState) => {
           if (currentState.answers.some((item) => item.activityId === activityId)) {
             return currentState;
           }
+
+          shouldApplyOutcome = true;
 
           return {
             ...currentState,
@@ -230,14 +292,26 @@ export function JourneyStateProvider({ children }: JourneyStateProviderProps): J
                 activityId,
                 answer,
                 isCorrect,
-                earnedXP,
+                earnedXP: awardedXP,
                 timestamp: new Date().toISOString(),
+                feedback,
               },
             ],
+            feedbackByActivity: {
+              ...currentState.feedbackByActivity,
+              [activityId]: feedback,
+            },
           };
         });
 
-        applyAnswerOutcome({ isCorrect, xpEarned: earnedXP });
+        if (shouldApplyOutcome) {
+          applyAnswerOutcome({
+            isCorrect,
+            xpEarned: awardedXP,
+            timeRemainingSec,
+            activityTimeLimitSec,
+          });
+        }
       },
       goToNextActivity: () => {
         setState((currentState) => {
@@ -248,23 +322,31 @@ export function JourneyStateProvider({ children }: JourneyStateProviderProps): J
           const checkpoint = currentState.journey.checkpoints[currentState.currentCheckpointIndex];
 
           if (currentState.currentActivityIndex < checkpoint.activities.length - 1) {
+            const nextActivity = checkpoint.activities[currentState.currentActivityIndex + 1];
+
             return {
               ...currentState,
               currentActivityIndex: currentState.currentActivityIndex + 1,
+              activityDeadlineAt: createDeadlineFromNow(nextActivity.timeLimitSec),
             };
           }
 
           if (currentState.currentCheckpointIndex < currentState.journey.checkpoints.length - 1) {
+            const nextCheckpoint = currentState.journey.checkpoints[currentState.currentCheckpointIndex + 1];
+
             return {
               ...currentState,
               currentCheckpointIndex: currentState.currentCheckpointIndex + 1,
               currentActivityIndex: 0,
+              activityDeadlineAt: createDeadlineFromNow(nextCheckpoint.activities[0].timeLimitSec),
             };
           }
 
           return {
             ...currentState,
             status: 'completed',
+            activityDeadlineAt: null,
+            journeyDeadlineAt: null,
           };
         });
       },
@@ -272,6 +354,8 @@ export function JourneyStateProvider({ children }: JourneyStateProviderProps): J
         setState((currentState) => ({
           ...currentState,
           status: 'completed',
+          activityDeadlineAt: null,
+          journeyDeadlineAt: null,
         }));
       },
       resetJourney: () => {
@@ -280,7 +364,18 @@ export function JourneyStateProvider({ children }: JourneyStateProviderProps): J
         resetGame();
       },
     }),
-    [applyAnswerOutcome, completedActivities, currentActivity, currentCheckpoint, resetGame, state, totalActivities],
+    [
+      applyAnswerOutcome,
+      completedActivities,
+      currentActivity,
+      currentActivityTimeLimitSec,
+      currentCheckpoint,
+      getXpAward,
+      journeyTimeLimitSec,
+      resetGame,
+      state,
+      totalActivities,
+    ],
   );
 
   return <JourneyContext.Provider value={value}>{children}</JourneyContext.Provider>;

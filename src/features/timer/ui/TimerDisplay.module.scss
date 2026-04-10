@@ -1,0 +1,73 @@
+.card {
+  display: grid;
+  gap: 0.85rem;
+  justify-items: center;
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 22px;
+  background: color-mix(in srgb, var(--color-primary) 55%, var(--color-secondary));
+}
+
+.cardCritical {
+  animation: pulse 1s ease-in-out infinite;
+}
+
+.label {
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.ring {
+  --timer-progress: 100%;
+  display: grid;
+  place-items: center;
+  width: 124px;
+  height: 124px;
+  border-radius: 50%;
+  background:
+    conic-gradient(
+      from 180deg,
+      var(--color-accent) 0 var(--timer-progress),
+      color-mix(in srgb, var(--color-border) 90%, transparent) var(--timer-progress) 100%
+    );
+}
+
+.cardCritical .ring {
+  background:
+    conic-gradient(
+      from 180deg,
+      #ef4444 0 var(--timer-progress),
+      color-mix(in srgb, var(--color-border) 90%, transparent) var(--timer-progress) 100%
+    );
+}
+
+.ringInner {
+  display: grid;
+  place-items: center;
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background: var(--color-secondary);
+  color: var(--color-text-primary);
+  font-size: 1.35rem;
+  font-weight: 800;
+}
+
+.caption {
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.02);
+  }
+}

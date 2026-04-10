@@ -46,6 +46,31 @@
   gap: 0.55rem;
 }
 
+.sessionCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--color-primary) 55%, var(--color-secondary));
+}
+
+.sessionText {
+  margin-top: 0.35rem;
+  color: var(--color-text-secondary);
+}
+
+.sessionBadge {
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-accent) 12%, var(--color-secondary));
+  color: var(--color-accent);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
 .fieldLabel {
   font-weight: 700;
 }
@@ -57,6 +82,19 @@
   border-radius: 18px;
   background: var(--color-primary);
   color: var(--color-text-primary);
+}
+
+.uploadPlaceholder {
+  padding: 1rem;
+  border: 1px dashed var(--color-border);
+  border-radius: 18px;
+  color: var(--color-text-secondary);
+  background: color-mix(in srgb, var(--color-primary) 70%, var(--color-secondary));
+}
+
+.error {
+  color: #c2410c;
+  font-weight: 600;
 }
 
 .primaryAction,
@@ -76,6 +114,12 @@
   border: 1px solid var(--color-border);
 }
 
+.primaryAction:disabled,
+.secondaryAction:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .tertiaryAction {
   color: var(--color-text-secondary);
 }
@@ -84,5 +128,10 @@
   .hero {
     padding: 1.5rem;
     border-radius: 24px;
+  }
+
+  .sessionCard {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }

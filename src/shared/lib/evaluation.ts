@@ -24,7 +24,7 @@ const EXACT_MATCH_TYPES = new Set<Activity['type']>([
 ]);
 
 function normalizeText(value: string): string {
-  return value.trim().toLowerCase();
+  return value.trim().toLowerCase().replace(/[.,!?]+$/g, '');
 }
 
 function toKeywordList(correctAnswer: Activity['correctAnswer']): string[] {

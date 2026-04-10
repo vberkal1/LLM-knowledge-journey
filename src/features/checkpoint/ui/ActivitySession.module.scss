@@ -1,0 +1,127 @@
+.session {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.debugHint {
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+}
+
+.optionGroup,
+.rankList {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.optionCard,
+.rankItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.95rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--color-primary) 60%, var(--color-secondary));
+}
+
+.optionCard {
+  justify-content: flex-start;
+}
+
+.optionInput {
+  margin: 0;
+}
+
+.rankItem > div:first-child {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.rankIndex {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.8rem;
+  height: 1.8rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-accent) 14%, var(--color-secondary));
+  color: var(--color-accent);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.rankActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.rankActions button,
+.submitButton,
+.nextButton {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-secondary);
+  color: var(--color-text-primary);
+  font-weight: 700;
+}
+
+.field {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.fieldLabel {
+  font-weight: 700;
+}
+
+.input,
+.textarea {
+  width: 100%;
+  padding: 0.95rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  background: var(--color-primary);
+  color: var(--color-text-primary);
+  resize: vertical;
+}
+
+.feedbackSuccess,
+.feedbackError {
+  display: grid;
+  gap: 0.35rem;
+  padding: 1rem;
+  border-radius: 18px;
+}
+
+.feedbackSuccess {
+  background: rgba(20, 184, 166, 0.12);
+  color: #0f766e;
+}
+
+.feedbackError {
+  background: rgba(239, 68, 68, 0.12);
+  color: #b91c1c;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.submitButton {
+  background: var(--color-accent);
+  color: #fff;
+}
+
+.nextButton:disabled,
+.submitButton:disabled,
+.rankActions button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}

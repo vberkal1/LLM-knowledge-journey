@@ -45,6 +45,7 @@ export interface UserAnswer {
   isCorrect: boolean;
   earnedXP: number;
   timestamp: string;
+  feedback?: string;
 }
 
 export interface JourneyResult {
