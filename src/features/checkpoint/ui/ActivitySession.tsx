@@ -56,7 +56,6 @@ export function ActivitySession({
   );
   const [isCorrect, setIsCorrect] = useState<boolean>(savedAnswer?.isCorrect ?? false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [debugRevealEnabled, setDebugRevealEnabled] = useState<boolean>(false);
 
   useEffect(() => {
     setAnswer(savedAnswer?.answer ?? buildInitialAnswer(activity));
@@ -70,38 +69,9 @@ export function ActivitySession({
     );
     setIsCorrect(savedAnswer?.isCorrect ?? false);
     setIsSubmitting(false);
-    setDebugRevealEnabled(false);
   }, [activity, language, savedAnswer]);
 
   const isAnswered = Boolean(savedAnswer);
-  useEffect(() => {
-    function onWindowKeyDown(event: KeyboardEvent): void {
-      if (!event.ctrlKey || event.key.toLowerCase() !== 'z' || isAnswered) {
-        return;
-      }
-
-      event.preventDefault();
-      setDebugRevealEnabled(true);
-
-      if (activity.type === 'rank-the-concepts') {
-        setAnswer(buildDebugAnswer());
-        return;
-      }
-
-      if (activity.options && typeof activity.correctAnswer === 'string') {
-        setAnswer(activity.correctAnswer);
-        return;
-      }
-
-      setAnswer(buildDebugAnswer());
-    }
-
-    window.addEventListener('keydown', onWindowKeyDown);
-
-    return () => {
-      window.removeEventListener('keydown', onWindowKeyDown);
-    };
-  }, [activity, isAnswered]);
   const rankAnswer = Array.isArray(answer) ? answer : [];
   const hasValidInput = useMemo(() => {
     if (Array.isArray(answer)) {
@@ -128,33 +98,6 @@ export function ActivitySession({
     nextOrder[index] = nextOrder[nextIndex];
     nextOrder[nextIndex] = currentItem;
     setAnswer(nextOrder);
-  }
-
-  function buildDebugAnswer(): string | string[] {
-    if (activity.type === 'rank-the-concepts') {
-      const orderedItems = Array.isArray(activity.correctAnswer)
-        ? [...activity.correctAnswer]
-        : [...(activity.options ?? [])];
-
-      if (orderedItems.length === 0) {
-        return [];
-      }
-
-      const lastIndex = orderedItems.length - 1;
-      orderedItems[lastIndex] = `${orderedItems[lastIndex]}.`;
-
-      return orderedItems;
-    }
-
-    if (typeof activity.correctAnswer === 'string') {
-      return `${activity.correctAnswer}.`;
-    }
-
-    if (Array.isArray(activity.correctAnswer)) {
-      return `${activity.correctAnswer.join(', ')}.`;
-    }
-
-    return '';
   }
 
   async function handleSubmit(): Promise<void> {
@@ -190,13 +133,10 @@ export function ActivitySession({
 
   return (
     <div className={styles.session}>
-      <p className={styles.debugHint}>{t('activity.debugHint')}</p>
       {activity.options && activity.type !== 'rank-the-concepts' ? (
         <div className={styles.optionGroup}>
           {activity.options.map((option) => {
             const checked = answer === option;
-            const label =
-              debugRevealEnabled && option === activity.correctAnswer ? `${option}.` : option;
 
             return (
               <label className={styles.optionCard} key={option}>
@@ -208,7 +148,7 @@ export function ActivitySession({
                   onChange={() => setAnswer(option)}
                   type="radio"
                 />
-                <span>{label}</span>
+                <span>{option}</span>
               </label>
             );
           })}

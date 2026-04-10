@@ -8,7 +8,7 @@ import { useGame } from './gameContext';
 
 type JourneyStatus = 'idle' | 'loading' | 'active' | 'completed';
 
-const DEFAULT_JOURNEY_TIME_LIMIT_SEC = 60; // DEFAULT
+const DEFAULT_JOURNEY_TIME_LIMIT_SEC = 1800; // DEFAULT
 
 interface JourneyState {
   journey: Journey | null;

@@ -207,7 +207,7 @@ export function buildFallbackJourney(
     id: journeyId,
     title: content.title(safeTopic),
     topic: safeTopic,
-    totalTimeLimitSec: 60,
+    totalTimeLimitSec: 1800,
     source: 'mock-fallback',
     checkpoints: content.checkpoints.map((checkpoint, checkpointIndex) => ({
       id: `${journeyId}-checkpoint-${checkpointIndex + 1}`,

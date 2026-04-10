@@ -63,7 +63,7 @@ app.post('/api/generate-journey', async (request, response) => {
                 'It must include at least one multiple-choice, one free-response, one teach-back, and one rank-the-concepts activity. ' +
                 `Use realistic educational questions and concise hints. Generate all learner-facing text in ${contentLanguage}. ` +
                 'This includes the title, topic wording, checkpoint titles, descriptions, questions, options, correct answers, and hints. ' +
-                'Set totalTimeLimitSec to 60 for testing. Every activity must have timeLimitSec and xpReward. ' +
+                'Set totalTimeLimitSec to 1800. Every activity must have timeLimitSec and xpReward. ' +
                 'Keep ids slug-like and unique.',
             },
           ],
