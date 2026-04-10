@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { generateJourney } from 'shared/api/aiService';
 import { countJourneyActivities } from 'shared/lib/evaluation';
+import type { Language } from 'shared/lib/i18n';
 import { readStorage, removeStorage, STORAGE_KEYS, writeStorage } from 'shared/lib/storage';
 import type { Activity, Checkpoint, Journey, UserAnswer } from 'shared/lib/types';
 import { useGame } from './gameContext';
@@ -40,7 +41,7 @@ interface JourneyContextValue extends JourneyState {
   completedActivities: number;
   journeyTimeLimitSec: number;
   currentActivityTimeLimitSec: number;
-  startJourney: (topic: string) => Promise<boolean>;
+  startJourney: (topic: string, language: Language) => Promise<boolean>;
   submitAnswer: (input: SubmitAnswerInput) => void;
   goToNextActivity: () => void;
   completeJourney: () => void;
@@ -243,7 +244,7 @@ export function JourneyStateProvider({ children }: JourneyStateProviderProps): J
       completedActivities,
       journeyTimeLimitSec,
       currentActivityTimeLimitSec,
-      startJourney: async (topic: string) => {
+      startJourney: async (topic: string, language: Language) => {
         const sanitizedTopic = topic.trim();
 
         resetGame();
@@ -255,7 +256,7 @@ export function JourneyStateProvider({ children }: JourneyStateProviderProps): J
         });
 
         try {
-          const journey = await generateJourney(sanitizedTopic);
+          const journey = await generateJourney(sanitizedTopic, language);
 
           setState({
             journey,

@@ -229,6 +229,16 @@ const messages: Record<Language, Record<string, MessageValue>> = {
   },
 };
 
+messages.en['journey.source'] = 'Source: {value}';
+messages.en['journey.source.ai'] = 'AI';
+messages.en['journey.source.fallback'] = 'Fallback mock';
+messages.en['report.source'] = 'Generation source: {value}';
+
+messages.ru['journey.source'] = 'Источник: {value}';
+messages.ru['journey.source.ai'] = 'AI';
+messages.ru['journey.source.fallback'] = 'Fallback mock';
+messages.ru['report.source'] = 'Источник генерации: {value}';
+
 function formatMessage(template: MessageValue, params?: Record<string, string | number>): string {
   if (typeof template === 'function') {
     return template(params);

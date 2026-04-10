@@ -7,7 +7,7 @@ import styles from './LandingPage.module.scss';
 
 export function LandingPage(): JSX.Element {
   const navigate = useNavigate();
-  const { t } = useI18n();
+  const { language, t } = useI18n();
   const { startJourney, status, journey, resetJourney } = useJourney();
   const [topic, setTopic] = useState<string>(journey?.topic ?? DEFAULT_JOURNEY_TOPIC);
   const [error, setError] = useState<string>('');
@@ -24,7 +24,7 @@ export function LandingPage(): JSX.Element {
 
     setError('');
 
-    const isStarted = await startJourney(sanitizedTopic);
+    const isStarted = await startJourney(sanitizedTopic, language);
 
     if (isStarted) {
       navigate('/journey');
@@ -32,6 +32,14 @@ export function LandingPage(): JSX.Element {
     }
 
     setError(t('landing.errorGenerate'));
+  }
+
+  function handleResumeJourney(): void {
+    if (!journey) {
+      return;
+    }
+
+    navigate('/journey');
   }
 
   return (
@@ -54,7 +62,12 @@ export function LandingPage(): JSX.Element {
           <span className={styles.fieldLabel}>{t('landing.uploadLabel')}</span>
           <div className={styles.uploadPlaceholder}>{t('landing.uploadPlaceholder')}</div>
         </label>
-        <div className={styles.sessionCard}>
+        <button
+          className={journey ? `${styles.sessionCard} ${styles.sessionCardActive}` : styles.sessionCard}
+          disabled={!journey}
+          onClick={handleResumeJourney}
+          type="button"
+        >
           <div>
             <strong>{t('landing.savedSession')}</strong>
             <p className={styles.sessionText}>
@@ -62,7 +75,7 @@ export function LandingPage(): JSX.Element {
             </p>
           </div>
           {journey ? <span className={styles.sessionBadge}>{t('landing.savedSessionReady')}</span> : null}
-        </div>
+        </button>
         {error ? <p className={styles.error}>{error}</p> : null}
         <div className={styles.actions}>
           <button className={styles.primaryAction} disabled={status === 'loading'} type="submit">
@@ -71,7 +84,7 @@ export function LandingPage(): JSX.Element {
           <button
             className={styles.secondaryAction}
             disabled={!journey}
-            onClick={() => navigate('/journey')}
+            onClick={handleResumeJourney}
             type="button"
           >
             {t('landing.resume')}

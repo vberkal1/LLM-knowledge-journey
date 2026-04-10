@@ -7,6 +7,7 @@ export const neuralNetworksJourneyMock: Journey = {
   title: 'Knowledge Journey: Neural Networks and Backpropagation',
   topic: DEFAULT_JOURNEY_TOPIC,
   totalTimeLimitSec: 60, // DEFAULT
+  source: 'mock-fallback',
   checkpoints: [
     {
       id: 'checkpoint-foundations',

@@ -176,6 +176,11 @@ export function JourneyPage(): JSX.Element {
             <span className={styles.eyebrow}>{t('journey.active')}</span>
             <h1>{activeJourney.title}</h1>
             <p className={styles.description}>{activeJourney.topic}</p>
+            <div className={styles.sourceBadge}>
+              {t('journey.source', {
+                value: t(activeJourney.source === 'ai' ? 'journey.source.ai' : 'journey.source.fallback'),
+              })}
+            </div>
             <div className={styles.metrics}>
               <div className={styles.metric}>
                 <strong>{activeJourney.checkpoints.length}</strong>

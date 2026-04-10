@@ -1,27 +1,27 @@
-import { DEFAULT_JOURNEY_TOPIC, neuralNetworksJourneyMock } from 'shared/api/mocks/journeyMocks';
 import { evaluateActivityAnswer, type EvaluationResult } from 'shared/lib/evaluation';
+import type { Language } from 'shared/lib/i18n';
 import type { Activity, Journey } from 'shared/lib/types';
 
-function cloneJourney(journey: Journey): Journey {
-  return {
-    ...journey,
-    checkpoints: journey.checkpoints.map((checkpoint) => ({
-      ...checkpoint,
-      activities: checkpoint.activities.map((activity) => ({ ...activity })),
-    })),
-  };
-}
-
 // REPLACE_WITH_REAL_API
-export async function generateJourney(topicOrText: string): Promise<Journey> {
-  const requestedTopic = topicOrText.trim();
-  const resolvedTopic = requestedTopic || DEFAULT_JOURNEY_TOPIC; // DEFAULT
-
-  return Promise.resolve({
-    ...cloneJourney(neuralNetworksJourneyMock),
-    topic: resolvedTopic,
-    title: `Knowledge Journey: ${resolvedTopic}`,
+export async function generateJourney(topicOrText: string, language: Language): Promise<Journey> {
+  const response = await fetch('/api/generate-journey', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      topic: topicOrText.trim(),
+      language,
+    }),
   });
+
+  if (!response.ok) {
+    const errorBody = (await response.json().catch(() => null)) as { error?: string } | null;
+
+    throw new Error(errorBody?.error ?? 'Journey generation failed.');
+  }
+
+  return (await response.json()) as Journey;
 }
 
 // REPLACE_WITH_REAL_API

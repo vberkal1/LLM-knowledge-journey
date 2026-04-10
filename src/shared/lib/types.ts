@@ -37,6 +37,7 @@ export interface Journey {
   topic: string;
   checkpoints: Checkpoint[];
   totalTimeLimitSec?: number;
+  source?: 'ai' | 'mock-fallback';
 }
 
 export interface UserAnswer {

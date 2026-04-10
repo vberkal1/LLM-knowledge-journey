@@ -52,6 +52,11 @@ export function ReportPage(): JSX.Element {
                   completion: completionRate,
                 })}
               </p>
+              <div className={styles.sourceBadge}>
+                {t('report.source', {
+                  value: t(journey.source === 'ai' ? 'journey.source.ai' : 'journey.source.fallback'),
+                })}
+              </div>
               <div className={styles.summaryGrid}>
                 <div className={styles.metricCard}>
                   <strong>

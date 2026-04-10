@@ -33,6 +33,16 @@
   text-transform: uppercase;
 }
 
+.sourceBadge {
+  width: fit-content;
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-accent) 12%, var(--color-secondary));
+  color: var(--color-accent);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
 .description,
 .metrics,
 .meta {

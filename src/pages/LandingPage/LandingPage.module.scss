@@ -51,15 +51,25 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+  width: 100%;
   padding: 1rem 1.1rem;
   border: 1px solid var(--color-border);
   border-radius: 20px;
   background: color-mix(in srgb, var(--color-primary) 55%, var(--color-secondary));
+  text-align: left;
 }
 
 .sessionText {
   margin-top: 0.35rem;
   color: var(--color-text-secondary);
+}
+
+.sessionCardActive {
+  cursor: pointer;
+}
+
+.sessionCard:disabled {
+  cursor: default;
 }
 
 .sessionBadge {
